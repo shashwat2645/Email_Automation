@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "sendTo": "={{ $('Webhook').item.json.body.email }}",
         "subject": "Re: Your Inquiry",
         "emailType": "text",
         "message": "={{ JSON.parse($('Message a model').item.json.content.parts[0].text).email_body }}",
@@ -89,9 +89,9 @@
           "mappingMode": "defineBelow",
           "value": {
             "Timestamp": "={{ $now }}",
-            "Name": "={{ $('On form submission').item.json.Name }}",
-            "Email": "={{ $('On form submission').item.json.Email }}",
-            "Message": "={{ $('On form submission').item.json.Message }}",
+            "Name": "={{ $('Webhook').item.json.body.name }}",
+            "Email": "={{ $('Webhook').item.json.body.email }}",
+            "Message": "={{ $('Webhook').item.json.body.message }}",
             "AIReply": "={{ JSON.parse($json.content.parts[0].text).email_body }}",
             "Category": "={{ JSON.parse($json.content.parts[0].text).category }}"
           },
@@ -194,12 +194,14 @@
       "id": "74e1f232-f146-425e-bcf2-05a93068797d",
       "name": "Send a message1",
       "webhookId": "71a9062a-175b-4d9c-acd0-ed2ab1d6fcf5",
+      "retryOnFail": true,
       "credentials": {
         "gmailOAuth2": {
           "id": "mHjlausRTnc3XEEZ",
           "name": "Gmail OAuth2 API"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -352,7 +354,8 @@
           "id": "mHjlausRTnc3XEEZ",
           "name": "Gmail OAuth2 API"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -378,7 +381,8 @@
           "id": "mHjlausRTnc3XEEZ",
           "name": "Gmail OAuth2 API"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -404,7 +408,8 @@
           "id": "mHjlausRTnc3XEEZ",
           "name": "Gmail OAuth2 API"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -430,14 +435,24 @@
           "id": "mHjlausRTnc3XEEZ",
           "name": "Gmail OAuth2 API"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "httpMethod": "POST",
         "path": "customer-support",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Response Header",
+                "value": "{   \"Access-Control-Allow-Origin\": \"*\",   \"Access-Control-Allow-Methods\": \"POST, OPTIONS\",   \"Access-Control-Allow-Headers\": \"Content-Type\" }"
+              }
+            ]
+          }
+        }
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
@@ -531,8 +546,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1536,
-        -16
+        2208,
+        96
       ],
       "id": "0fda1ea4-973b-4047-aeb7-c73f2d29b930",
       "name": "Respond to Webhook1"
@@ -604,6 +619,20 @@
       ],
       "id": "60b6c26c-de0a-4095-835e-801fe27daeaa",
       "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "numberInputs": 5
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1936,
+        288
+      ],
+      "id": "9fdb9b97-c699-4e8f-9756-6e3ec6f2bfcf",
+      "name": "Merge"
     }
   ],
   "pinData": {},
@@ -713,7 +742,7 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook1",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -724,9 +753,9 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook2",
+            "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -735,9 +764,9 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook3",
+            "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 2
           }
         ]
       ]
@@ -746,9 +775,9 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook4",
+            "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 3
           }
         ]
       ]
@@ -757,7 +786,18 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook5",
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
             "type": "main",
             "index": 0
           }
@@ -765,12 +805,12 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "18c96e0f-f91b-49dd-98cb-54af3296e913",
+  "versionId": "8627a364-e95f-404c-868c-6415b765813c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "97c19824b779f876d81a5d452d1d99e209a6fc3311b1bfef5223444299de4472"
