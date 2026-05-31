@@ -1,0 +1,780 @@
+{
+  "name": "Email Automation and Classification",
+  "nodes": [
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "Re: Your Inquiry",
+        "emailType": "text",
+        "message": "={{ JSON.parse($('Message a model').item.json.content.parts[0].text).email_body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        16
+      ],
+      "id": "4b7e9d21-ede7-40d4-aa67-30c651973e24",
+      "name": "Send a message",
+      "webhookId": "ac1318c1-d020-49e7-92da-7c44bd87083d",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mHjlausRTnc3XEEZ",
+          "name": "Gmail OAuth2 API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Customer Name:\n{{ $json.Name }}\n\nCustomer Email:\n{{ $json.Email }}\n\nCustomer Message:\n{{ $json.Message }}\n\nDraft a professional email reply."
+            },
+            {
+              "content": "You are a professional customer support assistant.\n\nWrite clear, friendly and helpful email responses.\n\nYou are an email assistant.\n\nReturn ONLY valid JSON.\n\nUse EXACTLY this schema:\n\n{\n  \"recipient_email\": \"\",\n  \"subject\": \"\",\n  \"email_body\": \"\",\n  \"category\":\"\"\n}\n\nClassify this inquiry.\n\nPossible categories:\n\nSales\nSupport\nComplaint\nSpam\nOther\n\nReturn ONLY one word.\n\nDo not add any other fields.\nDo not rename fields.\nDo not return markdown.",
+              "role": "model"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        16
+      ],
+      "id": "95ab1eab-6f2b-455d-bbd1-39676e13d48a",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ye1ROtaJ4IJdiNTa",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ynv76_oGNdxsM3LslVf5MmuExffV5BFcTzNabDYWFt4",
+          "mode": "list",
+          "cachedResultName": "Customer_Inquiries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ynv76_oGNdxsM3LslVf5MmuExffV5BFcTzNabDYWFt4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ynv76_oGNdxsM3LslVf5MmuExffV5BFcTzNabDYWFt4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "Name": "={{ $('On form submission').item.json.Name }}",
+            "Email": "={{ $('On form submission').item.json.Email }}",
+            "Message": "={{ $('On form submission').item.json.Message }}",
+            "AIReply": "={{ JSON.parse($json.content.parts[0].text).email_body }}",
+            "Category": "={{ JSON.parse($json.content.parts[0].text).category }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AIReply",
+              "displayName": "AIReply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        16
+      ],
+      "id": "258f0a8b-09c5-40b1-ba6b-313cd9c7627d",
+      "name": "Append row in sheet",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rBpTI030Q1xmK78u",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "shashwats2604@gmail.com",
+        "subject": "=New Sales Inquiry from  {{ $('Append row in sheet').item.json.Email }}",
+        "emailType": "text",
+        "message": "=User Query : {{ $('Append row in sheet').item.json.Message }}\nBot responded : {{ $('Append row in sheet').item.json.AIReply }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        -16
+      ],
+      "id": "74e1f232-f146-425e-bcf2-05a93068797d",
+      "name": "Send a message1",
+      "webhookId": "71a9062a-175b-4d9c-acd0-ed2ab1d6fcf5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mHjlausRTnc3XEEZ",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Append row in sheet').item.json.Category }}",
+                    "rightValue": "Sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c88d779-4d2d-45ee-881b-a7f859f31180"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2111c689-3559-4c92-840c-878a69109df2",
+                    "leftValue": "={{ $('Append row in sheet').item.json.Category }}",
+                    "rightValue": "Support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "082106a3-1459-4a37-b39b-b88618247c74",
+                    "leftValue": "={{ $('Append row in sheet').item.json.Category }}",
+                    "rightValue": "Spam",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fdba7969-ca34-4f38-b10f-fdb723c8cb3e",
+                    "leftValue": "={{ $('Append row in sheet').item.json.Category }}",
+                    "rightValue": "Complaint",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4af8c61a-300c-4fa7-baf2-7de0c3c59e38",
+                    "leftValue": "={{ $('Append row in sheet').item.json.Category }}",
+                    "rightValue": "Other",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        736,
+        144
+      ],
+      "id": "711569c6-cc99-4ffd-9e65-92399674817b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "shashwats2604@gmail.com",
+        "subject": "=New Support Inquiry from  {{ $('Append row in sheet').item.json.Email }}",
+        "emailType": "text",
+        "message": "=User Query : {{ $('Append row in sheet').item.json.Message }}\nBot responded : {{ $('Append row in sheet').item.json.AIReply }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        112
+      ],
+      "id": "d14189eb-6278-4c1a-95a8-82dba8b1bada",
+      "name": "Send a message2",
+      "webhookId": "71a9062a-175b-4d9c-acd0-ed2ab1d6fcf5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mHjlausRTnc3XEEZ",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "the.shashwat.works@gmail.com",
+        "subject": "=New Spam Inquiry from  {{ $('Append row in sheet').item.json.Email }}",
+        "emailType": "text",
+        "message": "=User Query : {{ $('Append row in sheet').item.json.Message }}\nBot responded : {{ $('Append row in sheet').item.json.AIReply }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        224
+      ],
+      "id": "50c8ef48-fb93-4cbc-b51e-1e2cf442739f",
+      "name": "Send a message3",
+      "webhookId": "71a9062a-175b-4d9c-acd0-ed2ab1d6fcf5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mHjlausRTnc3XEEZ",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "the.shashwat.works@gmail.com",
+        "subject": "=New Complaint Inquiry from  {{ $('Append row in sheet').item.json.Email }}",
+        "emailType": "text",
+        "message": "=User Query : {{ $('Append row in sheet').item.json.Message }}\nBot responded : {{ $('Append row in sheet').item.json.AIReply }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        336
+      ],
+      "id": "bef33799-e5de-4856-8c5b-e1d6bfdb8a4b",
+      "name": "Send a message4",
+      "webhookId": "71a9062a-175b-4d9c-acd0-ed2ab1d6fcf5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mHjlausRTnc3XEEZ",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "shashwats2604@gmail.com",
+        "subject": "=New Sales Inquiry from  {{ $('Append row in sheet').item.json.Email }}",
+        "emailType": "text",
+        "message": "=User Query : {{ $('Append row in sheet').item.json.Message }}\nBot responded : {{ $('Append row in sheet').item.json.AIReply }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        480
+      ],
+      "id": "9c56436a-0b5b-4cc7-ae3b-c55ab61d5cb3",
+      "name": "Send a message5",
+      "webhookId": "71a9062a-175b-4d9c-acd0-ed2ab1d6fcf5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mHjlausRTnc3XEEZ",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-support",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -768,
+        96
+      ],
+      "id": "8d5f0318-d09a-4b84-9813-3751d3943ed1",
+      "name": "Webhook",
+      "webhookId": "5950e4fc-28b3-4575-8b20-258e3ce12ce2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5fa6af1f-a059-4b90-b6c8-7d6977f45df4",
+              "leftValue": "={{ $json.body.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "47523633-b471-48dd-ba50-1879a27d8436",
+              "leftValue": "={{ $json.body.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "74494bd5-58fc-4b32-971f-101eb87872eb",
+              "leftValue": "={{ $json.body.message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        96
+      ],
+      "id": "bacf3b90-67f8-4922-8fa4-257dbd013e6f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"Field value is required\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -144,
+        240
+      ],
+      "id": "7407b95a-675b-4235-bde4-5b8df5722654",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Request processed successfully\",\n  \"timestamp\": \"{{$now}}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1536,
+        -16
+      ],
+      "id": "0fda1ea4-973b-4047-aeb7-c73f2d29b930",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Request processed successfully\",\n  \"timestamp\": \"{{$now}}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1536,
+        144
+      ],
+      "id": "cd4012f0-d917-48a1-8b1a-75c8baf88d9c",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Request processed successfully\",\n  \"timestamp\": \"{{$now}}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1536,
+        304
+      ],
+      "id": "45252d0e-474c-4cf2-af8f-8b8b064926da",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Request processed successfully\",\n  \"timestamp\": \"{{$now}}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1536,
+        448
+      ],
+      "id": "837390f7-e60e-45b0-8d69-f243b52b896f",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Request processed successfully\",\n  \"timestamp\": \"{{$now}}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1536,
+        624
+      ],
+      "id": "60b6c26c-de0a-4095-835e-801fe27daeaa",
+      "name": "Respond to Webhook5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "18c96e0f-f91b-49dd-98cb-54af3296e913",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "97c19824b779f876d81a5d452d1d99e209a6fc3311b1bfef5223444299de4472"
+  },
+  "id": "H4HFzQwjKDehPH6z",
+  "tags": []
+}
